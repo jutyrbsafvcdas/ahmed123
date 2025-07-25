@@ -3,6 +3,54 @@ import { User, Award, Code, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 
+const AnimatedDigit = ({ value, duration = 2000 }: { value: number; duration?: number }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    let start = 0;
+    const startTime = Date.now();
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(easeOut * value);
+      
+      setDisplayValue(current);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    if (value > 0) {
+      requestAnimationFrame(animate);
+    }
+  }, [value, duration]);
+  
+  const digits = displayValue.toString().split('');
+  
+  return (
+    <div className="flex">
+      {digits.map((digit, index) => (
+        <div key={`${index}-${digit}`} className="relative overflow-hidden h-8 sm:h-10 w-4 sm:w-6">
+          <div 
+            className="absolute inset-0 flex items-center justify-center transition-transform duration-200 ease-out"
+            style={{
+              transform: `translateY(0%)`,
+              animation: `slideUp 0.3s ease-out`
+            }}
+          >
+            {digit}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const About = () => {
   const [hasAnimated, setHasAnimated] = useState(false);
   const [counts, setCounts] = useState([0, 0, 0, 0]);
@@ -21,26 +69,7 @@ const About = () => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasAnimated) {
             setHasAnimated(true);
-            
-            // Start counting animations
-            stats.forEach((stat, index) => {
-              let currentCount = 0;
-              const increment = Math.ceil(stat.value / 80); // Complete in ~80 steps for smoother animation
-              
-              const timer = setInterval(() => {
-                currentCount += increment;
-                if (currentCount >= stat.value) {
-                  currentCount = stat.value;
-                  clearInterval(timer);
-                }
-                
-                setCounts(prev => {
-                  const newCounts = [...prev];
-                  newCounts[index] = currentCount;
-                  return newCounts;
-                });
-              }, 30); // Update every 30ms for smoother transitions
-            });
+            setCounts(stats.map(stat => stat.value));
           }
         });
       },
@@ -105,16 +134,9 @@ const About = () => {
                   <stat.icon className={`h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-3 ${stat.color} 
                                        group-hover:scale-110 transition-transform duration-300`} />
                   <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1 
-                                group-hover:text-accent transition-colors duration-300 overflow-hidden h-8 sm:h-10">
-                    <div 
-                      className="transform transition-transform duration-200 ease-out"
-                      style={{ 
-                        transform: `translateY(${hasAnimated ? '0' : '100%'})`,
-                        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                      }}
-                    >
-                      {counts[index]}{stat.suffix}
-                    </div>
+                                group-hover:text-accent transition-colors duration-300 flex items-center justify-center">
+                    <AnimatedDigit value={hasAnimated ? counts[index] : 0} duration={2000} />
+                    <span>{stat.suffix}</span>
                   </div>
                   <div className="text-xs sm:text-sm text-muted-foreground">
                     {stat.label}

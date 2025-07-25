@@ -141,4 +141,13 @@ All colors MUST be HSL.
   .button-pulse {
     @apply animate-pulse hover:animate-none;
   }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0%);
+    }
+  }
 }
