@@ -4,16 +4,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 
 const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: number }) => {
-  const [displayValue, setDisplayValue] = useState(0);
-  const [animatingDigits, setAnimatingDigits] = useState<{[key: number]: {current: string, previous: string, isAnimating: boolean}}>({});
+  const [displayDigits, setDisplayDigits] = useState<{digit: string, animating: boolean, direction: 'up' | 'down'}[]>([]);
   
   useEffect(() => {
     if (value === 0) {
-      setDisplayValue(0);
+      setDisplayDigits([{digit: '0', animating: false, direction: 'up'}]);
       return;
     }
 
-    let currentValue = 0;
+    const targetDigits = value.toString().split('');
+    const numDigits = targetDigits.length;
+    
+    // Initialize display digits
+    if (displayDigits.length === 0) {
+      setDisplayDigits(targetDigits.map(d => ({digit: d, animating: false, direction: 'up'})));
+      return;
+    }
+
     const startTime = Date.now();
     
     const animate = () => {
@@ -25,49 +32,54 @@ const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: n
         ? 4 * progress * progress * progress 
         : 1 - Math.pow(-2 * progress + 2, 3) / 2;
       
-      const newValue = Math.floor(easeInOutCubic * value);
-      
-      if (newValue !== currentValue) {
-        const oldDigits = currentValue.toString().split('');
-        const newDigits = newValue.toString().split('');
-        const maxLength = Math.max(oldDigits.length, newDigits.length);
+      const newDisplayDigits = targetDigits.map((targetDigit, digitIndex) => {
+        const targetValue = parseInt(targetDigit);
+        const currentDigit = displayDigits[digitIndex]?.digit || '0';
+        const currentValue = parseInt(currentDigit);
         
-        // Pad with leading zeros for consistent length
-        const paddedOld = oldDigits.reverse().concat(Array(maxLength - oldDigits.length).fill('0')).reverse();
-        const paddedNew = newDigits.reverse().concat(Array(maxLength - newDigits.length).fill('0')).reverse();
-        
-        const newAnimatingDigits: {[key: number]: {current: string, previous: string, isAnimating: boolean}} = {};
-        
-        paddedNew.forEach((digit, index) => {
-          const prevDigit = paddedOld[index] || '0';
-          if (digit !== prevDigit) {
-            newAnimatingDigits[index] = {
-              current: digit,
-              previous: prevDigit,
-              isAnimating: true
-            };
+        if (numDigits === 1) {
+          // Single digit: go through all intermediate values
+          const newValue = Math.floor(easeInOutCubic * targetValue);
+          const isChanging = newValue !== currentValue;
+          
+          return {
+            digit: newValue.toString(),
+            animating: isChanging,
+            direction: 'up' as const
+          };
+        } else {
+          // Multi-digit: analog clock concept
+          const digitPosition = numDigits - digitIndex - 1; // 0 = rightmost, 1 = second from right, etc.
+          
+          if (digitPosition === 0) {
+            // Rightmost digit: cycles through 0-9 multiple times
+            const totalCycles = Math.floor(targetValue / Math.pow(10, digitPosition));
+            const cycleProgress = (easeInOutCubic * targetValue) / Math.pow(10, digitPosition);
+            const newValue = Math.floor(cycleProgress % 10);
+            const isChanging = newValue !== currentValue;
             
-            // Stop animating after transition
-            setTimeout(() => {
-              setAnimatingDigits(prev => ({
-                ...prev,
-                [index]: { ...prev[index], isAnimating: false }
-              }));
-            }, 400);
+            return {
+              digit: newValue.toString(),
+              animating: isChanging,
+              direction: 'up' as const
+            };
           } else {
-            newAnimatingDigits[index] = {
-              current: digit,
-              previous: digit,
-              isAnimating: false
+            // Left digits: move proportionally slower like hour hand
+            const digitWeight = Math.pow(10, digitPosition);
+            const digitProgress = (easeInOutCubic * targetValue) / digitWeight;
+            const newValue = Math.floor(digitProgress) % 10;
+            const isChanging = newValue !== currentValue;
+            
+            return {
+              digit: newValue.toString(),
+              animating: isChanging,
+              direction: 'up' as const
             };
           }
-        });
-        
-        setAnimatingDigits(newAnimatingDigits);
-        currentValue = newValue;
-      }
+        }
+      });
       
-      setDisplayValue(newValue);
+      setDisplayDigits(newDisplayDigits);
       
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -77,40 +89,19 @@ const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: n
     requestAnimationFrame(animate);
   }, [value, duration]);
   
-  const digits = displayValue.toString().split('');
-  
   return (
     <div className="flex">
-      {digits.map((digit, index) => {
-        const animData = animatingDigits[index];
-        const isAnimating = animData?.isAnimating;
-        
-        return (
-          <div key={index} className="relative overflow-hidden h-8 sm:h-10 w-4 sm:w-6">
-            {isAnimating && animData ? (
-              <>
-                {/* Previous digit sliding up and out */}
-                <div 
-                  className="absolute inset-0 flex items-center justify-center animate-slide-up-out"
-                >
-                  {animData.previous}
-                </div>
-                {/* Current digit sliding in from bottom */}
-                <div 
-                  className="absolute inset-0 flex items-center justify-center animate-slide-in-from-bottom"
-                >
-                  {animData.current}
-                </div>
-              </>
-            ) : (
-              /* Static digit */
-              <div className="absolute inset-0 flex items-center justify-center">
-                {digit}
-              </div>
-            )}
+      {displayDigits.map((digitData, index) => (
+        <div key={index} className="relative overflow-hidden h-8 sm:h-10 w-4 sm:w-6">
+          <div 
+            className={`absolute inset-0 flex items-center justify-center transition-transform duration-300 ${
+              digitData.animating ? 'animate-digit-cylinder' : ''
+            }`}
+          >
+            {digitData.digit}
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 };
