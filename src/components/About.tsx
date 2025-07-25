@@ -53,7 +53,7 @@ const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: n
                 ...prev,
                 [index]: { ...prev[index], isAnimating: false }
               }));
-            }, 600);
+            }, 400);
           } else {
             newAnimatingDigits[index] = {
               current: digit,
@@ -89,21 +89,15 @@ const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: n
           <div key={index} className="relative overflow-hidden h-8 sm:h-10 w-4 sm:w-6">
             {isAnimating && animData ? (
               <>
-                {/* Previous digit sliding out */}
+                {/* Previous digit sliding up and out */}
                 <div 
-                  className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: 'translateY(-100%)',
-                  }}
+                  className="absolute inset-0 flex items-center justify-center animate-slide-up-out"
                 >
                   {animData.previous}
                 </div>
-                {/* Current digit sliding in */}
+                {/* Current digit sliding in from bottom */}
                 <div 
-                  className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: 'translateY(0%)',
-                  }}
+                  className="absolute inset-0 flex items-center justify-center animate-slide-in-from-bottom"
                 >
                   {animData.current}
                 </div>
