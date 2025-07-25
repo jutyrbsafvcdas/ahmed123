@@ -3,50 +3,120 @@ import { User, Award, Code, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 
-const AnimatedDigit = ({ value, duration = 2000 }: { value: number; duration?: number }) => {
+const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
+  const [animatingDigits, setAnimatingDigits] = useState<{[key: number]: {current: string, previous: string, isAnimating: boolean}}>({});
   
   useEffect(() => {
-    let start = 0;
+    if (value === 0) {
+      setDisplayValue(0);
+      return;
+    }
+
+    let currentValue = 0;
     const startTime = Date.now();
     
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function for smooth animation
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      const current = Math.floor(easeOut * value);
+      // Smooth easing function
+      const easeInOutCubic = progress < 0.5 
+        ? 4 * progress * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
       
-      setDisplayValue(current);
+      const newValue = Math.floor(easeInOutCubic * value);
+      
+      if (newValue !== currentValue) {
+        const oldDigits = currentValue.toString().split('');
+        const newDigits = newValue.toString().split('');
+        const maxLength = Math.max(oldDigits.length, newDigits.length);
+        
+        // Pad with leading zeros for consistent length
+        const paddedOld = oldDigits.reverse().concat(Array(maxLength - oldDigits.length).fill('0')).reverse();
+        const paddedNew = newDigits.reverse().concat(Array(maxLength - newDigits.length).fill('0')).reverse();
+        
+        const newAnimatingDigits: {[key: number]: {current: string, previous: string, isAnimating: boolean}} = {};
+        
+        paddedNew.forEach((digit, index) => {
+          const prevDigit = paddedOld[index] || '0';
+          if (digit !== prevDigit) {
+            newAnimatingDigits[index] = {
+              current: digit,
+              previous: prevDigit,
+              isAnimating: true
+            };
+            
+            // Stop animating after transition
+            setTimeout(() => {
+              setAnimatingDigits(prev => ({
+                ...prev,
+                [index]: { ...prev[index], isAnimating: false }
+              }));
+            }, 600);
+          } else {
+            newAnimatingDigits[index] = {
+              current: digit,
+              previous: digit,
+              isAnimating: false
+            };
+          }
+        });
+        
+        setAnimatingDigits(newAnimatingDigits);
+        currentValue = newValue;
+      }
+      
+      setDisplayValue(newValue);
       
       if (progress < 1) {
         requestAnimationFrame(animate);
       }
     };
     
-    if (value > 0) {
-      requestAnimationFrame(animate);
-    }
+    requestAnimationFrame(animate);
   }, [value, duration]);
   
   const digits = displayValue.toString().split('');
   
   return (
     <div className="flex">
-      {digits.map((digit, index) => (
-        <div key={`${index}-${digit}`} className="relative overflow-hidden h-8 sm:h-10 w-4 sm:w-6">
-          <div 
-            className="absolute inset-0 flex items-center justify-center transition-transform duration-200 ease-out"
-            style={{
-              transform: `translateY(0%)`,
-              animation: `slideUp 0.3s ease-out`
-            }}
-          >
-            {digit}
+      {digits.map((digit, index) => {
+        const animData = animatingDigits[index];
+        const isAnimating = animData?.isAnimating;
+        
+        return (
+          <div key={index} className="relative overflow-hidden h-8 sm:h-10 w-4 sm:w-6">
+            {isAnimating && animData ? (
+              <>
+                {/* Previous digit sliding out */}
+                <div 
+                  className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-in-out"
+                  style={{
+                    transform: 'translateY(-100%)',
+                  }}
+                >
+                  {animData.previous}
+                </div>
+                {/* Current digit sliding in */}
+                <div 
+                  className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-in-out"
+                  style={{
+                    transform: 'translateY(0%)',
+                  }}
+                >
+                  {animData.current}
+                </div>
+              </>
+            ) : (
+              /* Static digit */
+              <div className="absolute inset-0 flex items-center justify-center">
+                {digit}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
