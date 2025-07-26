@@ -3,10 +3,11 @@ import { User, Award, Code, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 
-const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: number }) => {
+const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: number }) => {
   const digitRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  const DIGIT_HEIGHT_PX = 40; // 2.5rem * 16px (matches our h-10 class)
   const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
 
   useEffect(() => {
@@ -15,62 +16,54 @@ const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: n
     const targetDigits = value.toString().split('').map(d => parseInt(d));
     const numDigits = targetDigits.length;
     
-    // Clear previous refs
     digitRefs.current = new Array(numDigits).fill(null);
-    
     setIsAnimating(true);
 
-    // Small delay to ensure refs are set
     setTimeout(() => {
+      const start = performance.now();
+
       targetDigits.forEach((targetDigit, digitIndex) => {
         const digitColumn = digitRefs.current[digitIndex];
         if (!digitColumn) return;
 
-        // Clear and populate digits
         digitColumn.innerHTML = '';
         
+        let totalDigits: number;
+        
         if (numDigits === 1) {
-          // Single digit: show 0 through target value
-          for (let i = 0; i <= targetDigit; i++) {
+          // Single digit: 0 through target + 1 (like 0,1,2,3,4,5 for value 5)
+          totalDigits = targetDigit + 1;
+          for (let i = 0; i < totalDigits; i++) {
             const digitDiv = document.createElement('div');
-            digitDiv.className = 'h-8 sm:h-10 flex items-center justify-center';
+            digitDiv.className = 'h-10 flex items-center justify-center';
             digitDiv.textContent = String(i);
             digitColumn.appendChild(digitDiv);
           }
         } else {
-          // Multi-digit: analog clock concept
           const digitPosition = numDigits - digitIndex - 1; // 0 = rightmost
           
           if (digitPosition === 0) {
-            // Rightmost digit: full cycles (0-9) plus final digit
-            const fullCycles = Math.floor(value / 10);
-            const totalDigits = fullCycles * 10 + targetDigit + 1;
-            
+            // Rightmost digit: like the HTML example - full cycles + final digit
+            totalDigits = Math.floor(value / 10) * 10 + targetDigit + 1;
             for (let i = 0; i < totalDigits; i++) {
               const digitDiv = document.createElement('div');
-              digitDiv.className = 'h-8 sm:h-10 flex items-center justify-center';
+              digitDiv.className = 'h-10 flex items-center justify-center';
               digitDiv.textContent = String(i % 10);
               digitColumn.appendChild(digitDiv);
             }
           } else {
-            // Left digits: proportional movement
-            const digitWeight = Math.pow(10, digitPosition);
-            const maxValue = Math.floor(value / digitWeight) + 1;
-            
-            for (let i = 0; i < maxValue; i++) {
+            // Left digits: just 0 to target digit
+            totalDigits = targetDigit + 1;
+            for (let i = 0; i < totalDigits; i++) {
               const digitDiv = document.createElement('div');
-              digitDiv.className = 'h-8 sm:h-10 flex items-center justify-center';
+              digitDiv.className = 'h-10 flex items-center justify-center';
               digitDiv.textContent = String(i);
               digitColumn.appendChild(digitDiv);
             }
           }
         }
 
-        // Animate
-        const start = performance.now();
-        const digitHeight = digitColumn.querySelector('div')?.offsetHeight || 32;
-        const totalChildren = digitColumn.children.length;
-        const totalScroll = digitHeight * (totalChildren - 1);
+        const totalScroll = DIGIT_HEIGHT_PX * (totalDigits - 1);
 
         const animate = (time: number) => {
           const elapsed = time - start;
