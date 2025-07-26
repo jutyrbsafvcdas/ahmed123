@@ -4,102 +4,107 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 
 const AnimatedDigit = ({ value, duration = 3000 }: { value: number; duration?: number }) => {
-  const [displayDigits, setDisplayDigits] = useState<{digit: string, animating: boolean, direction: 'up' | 'down'}[]>([]);
-  
-  useEffect(() => {
-    if (value === 0) {
-      setDisplayDigits([{digit: '0', animating: false, direction: 'up'}]);
-      return;
-    }
+  const digitRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-    const targetDigits = value.toString().split('');
+  const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+
+  useEffect(() => {
+    if (value === 0) return;
+
+    const targetDigits = value.toString().split('').map(d => parseInt(d));
     const numDigits = targetDigits.length;
     
-    // Initialize display digits
-    if (displayDigits.length === 0) {
-      setDisplayDigits(targetDigits.map(d => ({digit: d, animating: false, direction: 'up'})));
-      return;
-    }
-
-    const startTime = Date.now();
+    // Clear previous refs
+    digitRefs.current = new Array(numDigits).fill(null);
     
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Smooth easing function
-      const easeInOutCubic = progress < 0.5 
-        ? 4 * progress * progress * progress 
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-      
-      const newDisplayDigits = targetDigits.map((targetDigit, digitIndex) => {
-        const targetValue = parseInt(targetDigit);
-        const currentDigit = displayDigits[digitIndex]?.digit || '0';
-        const currentValue = parseInt(currentDigit);
+    setIsAnimating(true);
+
+    // Small delay to ensure refs are set
+    setTimeout(() => {
+      targetDigits.forEach((targetDigit, digitIndex) => {
+        const digitColumn = digitRefs.current[digitIndex];
+        if (!digitColumn) return;
+
+        // Clear and populate digits
+        digitColumn.innerHTML = '';
         
         if (numDigits === 1) {
-          // Single digit: go through all intermediate values
-          const newValue = Math.floor(easeInOutCubic * targetValue);
-          const isChanging = newValue !== currentValue;
-          
-          return {
-            digit: newValue.toString(),
-            animating: isChanging,
-            direction: 'up' as const
-          };
+          // Single digit: show 0 through target value
+          for (let i = 0; i <= targetDigit; i++) {
+            const digitDiv = document.createElement('div');
+            digitDiv.className = 'h-8 sm:h-10 flex items-center justify-center';
+            digitDiv.textContent = String(i);
+            digitColumn.appendChild(digitDiv);
+          }
         } else {
           // Multi-digit: analog clock concept
-          const digitPosition = numDigits - digitIndex - 1; // 0 = rightmost, 1 = second from right, etc.
+          const digitPosition = numDigits - digitIndex - 1; // 0 = rightmost
           
           if (digitPosition === 0) {
-            // Rightmost digit: cycles through 0-9 multiple times
-            const totalCycles = Math.floor(targetValue / Math.pow(10, digitPosition));
-            const cycleProgress = (easeInOutCubic * targetValue) / Math.pow(10, digitPosition);
-            const newValue = Math.floor(cycleProgress % 10);
-            const isChanging = newValue !== currentValue;
+            // Rightmost digit: full cycles (0-9) plus final digit
+            const fullCycles = Math.floor(value / 10);
+            const totalDigits = fullCycles * 10 + targetDigit + 1;
             
-            return {
-              digit: newValue.toString(),
-              animating: isChanging,
-              direction: 'up' as const
-            };
+            for (let i = 0; i < totalDigits; i++) {
+              const digitDiv = document.createElement('div');
+              digitDiv.className = 'h-8 sm:h-10 flex items-center justify-center';
+              digitDiv.textContent = String(i % 10);
+              digitColumn.appendChild(digitDiv);
+            }
           } else {
-            // Left digits: move proportionally slower like hour hand
+            // Left digits: proportional movement
             const digitWeight = Math.pow(10, digitPosition);
-            const digitProgress = (easeInOutCubic * targetValue) / digitWeight;
-            const newValue = Math.floor(digitProgress) % 10;
-            const isChanging = newValue !== currentValue;
+            const maxValue = Math.floor(value / digitWeight) + 1;
             
-            return {
-              digit: newValue.toString(),
-              animating: isChanging,
-              direction: 'up' as const
-            };
+            for (let i = 0; i < maxValue; i++) {
+              const digitDiv = document.createElement('div');
+              digitDiv.className = 'h-8 sm:h-10 flex items-center justify-center';
+              digitDiv.textContent = String(i);
+              digitColumn.appendChild(digitDiv);
+            }
           }
         }
-      });
-      
-      setDisplayDigits(newDisplayDigits);
-      
-      if (progress < 1) {
+
+        // Animate
+        const start = performance.now();
+        const digitHeight = digitColumn.querySelector('div')?.offsetHeight || 32;
+        const totalChildren = digitColumn.children.length;
+        const totalScroll = digitHeight * (totalChildren - 1);
+
+        const animate = (time: number) => {
+          const elapsed = time - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = easeOutCubic(progress);
+
+          digitColumn.style.transform = `translateY(-${eased * totalScroll}px)`;
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else if (digitIndex === targetDigits.length - 1) {
+            setIsAnimating(false);
+          }
+        };
+
         requestAnimationFrame(animate);
-      }
-    };
-    
-    requestAnimationFrame(animate);
+      });
+    }, 50);
   }, [value, duration]);
-  
+
+  if (value === 0) {
+    return <div className="text-2xl sm:text-3xl font-bold">0</div>;
+  }
+
+  const numDigits = value.toString().length;
+
   return (
     <div className="flex">
-      {displayDigits.map((digitData, index) => (
-        <div key={index} className="relative overflow-hidden h-8 sm:h-10 w-4 sm:w-6">
+      {Array.from({ length: numDigits }, (_, index) => (
+        <div key={index} className="relative w-4 sm:w-6 h-8 sm:h-10 overflow-hidden">
           <div 
-            className={`absolute inset-0 flex items-center justify-center transition-transform duration-300 ${
-              digitData.animating ? 'animate-digit-cylinder' : ''
-            }`}
-          >
-            {digitData.digit}
-          </div>
+            ref={el => digitRefs.current[index] = el}
+            className="absolute top-0 left-0 right-0 flex flex-col transition-transform"
+          />
         </div>
       ))}
     </div>
