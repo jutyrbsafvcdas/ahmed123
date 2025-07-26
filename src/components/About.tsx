@@ -7,7 +7,7 @@ const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: n
   const digitRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const DIGIT_HEIGHT_PX = 40; // 2.5rem * 16px (matches our h-10 class)
+  const DIGIT_HEIGHT_PX = 40;
   const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
 
   useEffect(() => {
@@ -20,27 +20,6 @@ const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: n
     setIsAnimating(true);
 
     setTimeout(() => {
-      // Calculate scroll distances first to normalize speed
-      const scrollDistances: number[] = [];
-      
-      targetDigits.forEach((targetDigit, digitIndex) => {
-        let totalDigits: number;
-        
-        if (numDigits === 1) {
-          totalDigits = targetDigit + 1;
-        } else {
-          const digitPosition = numDigits - digitIndex - 1;
-          if (digitPosition === 0) {
-            // Rightmost digit gets more elements but should move at same speed
-            totalDigits = 11; // Always 0-9 plus final digit (like your HTML example)
-          } else {
-            totalDigits = targetDigit + 1;
-          }
-        }
-        
-        scrollDistances[digitIndex] = DIGIT_HEIGHT_PX * (totalDigits - 1);
-      });
-
       const start = performance.now();
 
       targetDigits.forEach((targetDigit, digitIndex) => {
@@ -49,37 +28,43 @@ const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: n
 
         digitColumn.innerHTML = '';
         
+        // For consistent speed, all digits use the same base number of elements
+        const BASE_ELEMENTS = 11; // Always scroll through the same distance
+        
         if (numDigits === 1) {
-          // Single digit: 0 through target
-          for (let i = 0; i <= targetDigit; i++) {
+          // Single digit: pad with extra elements for smooth animation
+          for (let i = 0; i < BASE_ELEMENTS; i++) {
             const digitDiv = document.createElement('div');
             digitDiv.className = 'h-10 flex items-center justify-center';
-            digitDiv.textContent = String(i);
+            digitDiv.textContent = String(Math.min(i, targetDigit));
             digitColumn.appendChild(digitDiv);
           }
         } else {
           const digitPosition = numDigits - digitIndex - 1;
           
           if (digitPosition === 0) {
-            // Rightmost digit: always 11 elements (0-9 + final)
-            for (let i = 0; i < 11; i++) {
+            // Rightmost digit: full 0-9 cycle + final digit
+            for (let i = 0; i < BASE_ELEMENTS; i++) {
               const digitDiv = document.createElement('div');
               digitDiv.className = 'h-10 flex items-center justify-center';
               digitDiv.textContent = String(i % 10);
               digitColumn.appendChild(digitDiv);
             }
           } else {
-            // Left digits: 0 to target digit
-            for (let i = 0; i <= targetDigit; i++) {
+            // Left digits: interpolate smoothly to target
+            for (let i = 0; i < BASE_ELEMENTS; i++) {
               const digitDiv = document.createElement('div');
               digitDiv.className = 'h-10 flex items-center justify-center';
-              digitDiv.textContent = String(i);
+              const progress = i / (BASE_ELEMENTS - 1);
+              const currentValue = Math.floor(progress * targetDigit);
+              digitDiv.textContent = String(currentValue);
               digitColumn.appendChild(digitDiv);
             }
           }
         }
 
-        const totalScroll = scrollDistances[digitIndex];
+        // All digits scroll the same distance for consistent speed
+        const totalScroll = DIGIT_HEIGHT_PX * (BASE_ELEMENTS - 1);
 
         const animate = (time: number) => {
           const elapsed = time - start;
