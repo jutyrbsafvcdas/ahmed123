@@ -1,103 +1,105 @@
-
 import { User, Award, Code, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 
-const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: number }) => {
+// Final AnimatedDigit Component
+const AnimatedDigit = ({ value }: { value: number }) => {
   const digitRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [currentValue, setCurrentValue] = useState(0);
 
-  const DIGIT_HEIGHT_PX = 40;
-  const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+  const DIGIT_HEIGHT = 40;
+
+  // Easing function for a smooth slide (for left digits)
+  const EASE_OUT_QUART = (t: number): number => 1 - Math.pow(1 - t, 4);
+  
+  // Easing function with a subtle bounce (for the rightmost digit)
+  const EASE_OUT_BACK_SUBTLE = (t: number): number => {
+    const c1 = 0.8;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  };
 
   useEffect(() => {
-    if (value === 0) return;
+    if (value === currentValue || isAnimating) return;
 
-    const targetDigits = value.toString().split('').map(d => parseInt(d));
+    const targetDigits = value.toString().split("").map(Number);
     const numDigits = targetDigits.length;
-    
-    digitRefs.current = new Array(numDigits).fill(null);
+    digitRefs.current = Array(numDigits).fill(null);
     setIsAnimating(true);
-
+    
     setTimeout(() => {
       const start = performance.now();
+      const duration = Math.min(3000, 600 + value * 100);
 
-      targetDigits.forEach((targetDigit, digitIndex) => {
-        const digitColumn = digitRefs.current[digitIndex];
+      targetDigits.forEach((targetDigit, i) => {
+        const digitColumn = digitRefs.current[i];
         if (!digitColumn) return;
 
-        digitColumn.innerHTML = '';
+        digitColumn.innerHTML = ''; 
+
+        const digitPosition = numDigits - 1 - i;
+        const spins = 2 + digitPosition * 2;
+        const totalElements = spins * 10;
         
-        // For consistent speed, all digits use the same base number of elements
-        const BASE_ELEMENTS = 11; // Always scroll through the same distance
-        
-        if (numDigits === 1) {
-          // Single digit: pad with extra elements for smooth animation
-          for (let i = 0; i < BASE_ELEMENTS; i++) {
-            const digitDiv = document.createElement('div');
-            digitDiv.className = 'h-10 flex items-center justify-center';
-            digitDiv.textContent = String(Math.min(i, targetDigit));
-            digitColumn.appendChild(digitDiv);
-          }
-        } else {
-          const digitPosition = numDigits - digitIndex - 1;
-          
-          if (digitPosition === 0) {
-            // Rightmost digit: full 0-9 cycle + final digit
-            for (let i = 0; i < BASE_ELEMENTS; i++) {
-              const digitDiv = document.createElement('div');
-              digitDiv.className = 'h-10 flex items-center justify-center';
-              digitDiv.textContent = String(i % 10);
-              digitColumn.appendChild(digitDiv);
-            }
-          } else {
-            // Left digits: interpolate smoothly to target
-            for (let i = 0; i < BASE_ELEMENTS; i++) {
-              const digitDiv = document.createElement('div');
-              digitDiv.className = 'h-10 flex items-center justify-center';
-              const progress = i / (BASE_ELEMENTS - 1);
-              const currentValue = Math.floor(progress * targetDigit);
-              digitDiv.textContent = String(currentValue);
-              digitColumn.appendChild(digitDiv);
-            }
-          }
+        for (let j = 0; j < totalElements; j++) {
+          const digitDiv = document.createElement('div');
+          digitDiv.className = 'h-10 flex items-center justify-center text-foreground';
+          digitDiv.textContent = String(j % 10);
+          digitColumn.appendChild(digitDiv);
         }
 
-        // All digits scroll the same distance for consistent speed
-        const totalScroll = DIGIT_HEIGHT_PX * (BASE_ELEMENTS - 1);
+        const finalElementIndex = (spins - 1) * 10 + targetDigit;
+        const finalScrollY = finalElementIndex * DIGIT_HEIGHT;
 
         const animate = (time: number) => {
           const elapsed = time - start;
           const progress = Math.min(elapsed / duration, 1);
-          const eased = easeOutCubic(progress);
+          
+          // --- CORRECTED CONDITIONAL EASING ---
+          // Use the bounce effect if it's the rightmost digit (digitPosition === 0).
+          // This now correctly includes single-digit numbers.
+          const easingFunction = (digitPosition === 0) 
+            ? EASE_OUT_BACK_SUBTLE 
+            : EASE_OUT_QUART;
+          
+          const easedProgress = easingFunction(progress);
 
-          digitColumn.style.transform = `translateY(-${eased * totalScroll}px)`;
+          digitColumn.style.transform = `translateY(-${easedProgress * finalScrollY}px)`;
 
           if (progress < 1) {
             requestAnimationFrame(animate);
-          } else if (digitIndex === targetDigits.length - 1) {
-            setIsAnimating(false);
+          } else {
+            digitColumn.style.transform = `translateY(-${finalScrollY}px)`;
+            if (i === 0) { 
+              setIsAnimating(false);
+              setCurrentValue(value);
+            }
           }
         };
 
         requestAnimationFrame(animate);
       });
-    }, 50);
-  }, [value, duration]);
+    }, 20);
+    
+  }, [value, isAnimating, currentValue]);
 
-  if (value === 0) {
-    return <div className="text-2xl sm:text-3xl font-bold">0</div>;
+  if (value === 0 && !isAnimating) {
+    return <div className="text-2xl sm:text-3xl font-bold text-foreground">0</div>;
   }
 
-  const numDigits = value.toString().length;
+  const numDigits = value > 0 ? value.toString().length : 1;
 
   return (
-    <div className="flex">
+    <div className="flex text-2xl sm:text-3xl font-bold">
       {Array.from({ length: numDigits }, (_, index) => (
-        <div key={index} className="relative w-4 sm:w-6 h-8 sm:h-10 overflow-hidden">
-          <div 
-            ref={el => digitRefs.current[index] = el}
-            className="absolute top-0 left-0 right-0 flex flex-col transition-transform"
+        <div 
+          key={index} 
+          className="relative w-6 h-10 overflow-hidden"
+        >
+          <div
+            ref={(el) => (digitRefs.current[index] = el)}
+            className="absolute top-0 left-0 right-0 flex flex-col"
           />
         </div>
       ))}
@@ -105,9 +107,9 @@ const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: n
   );
 };
 
+
 const About = () => {
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [counts, setCounts] = useState([0, 0, 0, 0]);
   const sectionRef = useRef<HTMLElement>(null);
 
   const stats = [
@@ -117,29 +119,31 @@ const About = () => {
     { icon: Zap, label: "Certifications", value: 10, suffix: "+", color: "text-orange-500" },
   ];
 
+  const [counts, setCounts] = useState(stats.map(() => 0));
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasAnimated) {
-            setHasAnimated(true);
-            setCounts(stats.map(stat => stat.value));
-          }
-        });
+        const [entry] = entries;
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          setCounts(stats.map(stat => stat.value));
+        }
       },
       { threshold: 0.3 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
-  }, [hasAnimated]);
+  }, [hasAnimated, stats]);
 
   return (
     <section ref={sectionRef} id="about" className="py-20 bg-muted/30">
@@ -189,7 +193,7 @@ const About = () => {
                                        group-hover:scale-110 transition-transform duration-300`} />
                   <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1 
                                 group-hover:text-accent transition-colors duration-300 flex items-center justify-center">
-                    <AnimatedDigit value={hasAnimated ? counts[index] : 0} duration={2000} />
+                    <AnimatedDigit value={counts[index]} />
                     <span>{stat.suffix}</span>
                   </div>
                   <div className="text-xs sm:text-sm text-muted-foreground">

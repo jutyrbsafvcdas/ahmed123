@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Github, Linkedin, Mail, ArrowDown, Instagram, Code, Zap, Sparkles, Star } from "lucide-react";
+import { Github, Linkedin, Mail, ArrowDown, Instagram, Code, Zap, Sparkles } from "lucide-react";
 import XLogo from "@/components/ui/x-logo";
 import { useState, useEffect } from "react";
 
@@ -95,19 +95,14 @@ const Hero = () => {
             {/* Floating action buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
               <Button 
-                variant="outline" 
                 size="default" 
                 onClick={scrollToProjects}
-                className="group transition-all duration-300 hover:scale-105 relative overflow-hidden
-                         border-accent/30 hover:border-accent/50 text-black hover:text-black
+                className="group transition-all duration-300 hover:scale-105 relative 
+                         bg-accent text-accent-foreground hover:bg-accent/90
                          hover:shadow-[0_0_15px_rgba(178,148,246,0.3)] px-6"
-                style={{ backgroundColor: 'hsl(270 50% 50%)' }}
               >
-                <span className="relative z-10 flex items-center justify-center w-full">
-                  Explore My Work
-                  <ArrowDown className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                Explore My Work
+                <ArrowDown className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />
               </Button>
               
               {/* Social media with enhanced hover effects */}
