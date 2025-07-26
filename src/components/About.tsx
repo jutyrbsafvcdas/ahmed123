@@ -20,6 +20,27 @@ const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: n
     setIsAnimating(true);
 
     setTimeout(() => {
+      // Calculate scroll distances first to normalize speed
+      const scrollDistances: number[] = [];
+      
+      targetDigits.forEach((targetDigit, digitIndex) => {
+        let totalDigits: number;
+        
+        if (numDigits === 1) {
+          totalDigits = targetDigit + 1;
+        } else {
+          const digitPosition = numDigits - digitIndex - 1;
+          if (digitPosition === 0) {
+            // Rightmost digit gets more elements but should move at same speed
+            totalDigits = 11; // Always 0-9 plus final digit (like your HTML example)
+          } else {
+            totalDigits = targetDigit + 1;
+          }
+        }
+        
+        scrollDistances[digitIndex] = DIGIT_HEIGHT_PX * (totalDigits - 1);
+      });
+
       const start = performance.now();
 
       targetDigits.forEach((targetDigit, digitIndex) => {
@@ -28,33 +49,28 @@ const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: n
 
         digitColumn.innerHTML = '';
         
-        let totalDigits: number;
-        
         if (numDigits === 1) {
-          // Single digit: 0 through target + 1 (like 0,1,2,3,4,5 for value 5)
-          totalDigits = targetDigit + 1;
-          for (let i = 0; i < totalDigits; i++) {
+          // Single digit: 0 through target
+          for (let i = 0; i <= targetDigit; i++) {
             const digitDiv = document.createElement('div');
             digitDiv.className = 'h-10 flex items-center justify-center';
             digitDiv.textContent = String(i);
             digitColumn.appendChild(digitDiv);
           }
         } else {
-          const digitPosition = numDigits - digitIndex - 1; // 0 = rightmost
+          const digitPosition = numDigits - digitIndex - 1;
           
           if (digitPosition === 0) {
-            // Rightmost digit: like the HTML example - full cycles + final digit
-            totalDigits = Math.floor(value / 10) * 10 + targetDigit + 1;
-            for (let i = 0; i < totalDigits; i++) {
+            // Rightmost digit: always 11 elements (0-9 + final)
+            for (let i = 0; i < 11; i++) {
               const digitDiv = document.createElement('div');
               digitDiv.className = 'h-10 flex items-center justify-center';
               digitDiv.textContent = String(i % 10);
               digitColumn.appendChild(digitDiv);
             }
           } else {
-            // Left digits: just 0 to target digit
-            totalDigits = targetDigit + 1;
-            for (let i = 0; i < totalDigits; i++) {
+            // Left digits: 0 to target digit
+            for (let i = 0; i <= targetDigit; i++) {
               const digitDiv = document.createElement('div');
               digitDiv.className = 'h-10 flex items-center justify-center';
               digitDiv.textContent = String(i);
@@ -63,7 +79,7 @@ const AnimatedDigit = ({ value, duration = 4000 }: { value: number; duration?: n
           }
         }
 
-        const totalScroll = DIGIT_HEIGHT_PX * (totalDigits - 1);
+        const totalScroll = scrollDistances[digitIndex];
 
         const animate = (time: number) => {
           const elapsed = time - start;
