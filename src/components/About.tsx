@@ -2,18 +2,14 @@ import { User, Award, Code, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 
-// Final AnimatedDigit Component
+// AnimatedDigit Component (no changes needed)
 const AnimatedDigit = ({ value }: { value: number }) => {
   const digitRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentValue, setCurrentValue] = useState(0);
 
   const DIGIT_HEIGHT = 40;
-
-  // Easing function for a smooth slide (for left digits)
   const EASE_OUT_QUART = (t: number): number => 1 - Math.pow(1 - t, 4);
-  
-  // Easing function with a subtle bounce (for the rightmost digit)
   const EASE_OUT_BACK_SUBTLE = (t: number): number => {
     const c1 = 0.8;
     const c3 = c1 + 1;
@@ -56,9 +52,6 @@ const AnimatedDigit = ({ value }: { value: number }) => {
           const elapsed = time - start;
           const progress = Math.min(elapsed / duration, 1);
           
-          // --- CORRECTED CONDITIONAL EASING ---
-          // Use the bounce effect if it's the rightmost digit (digitPosition === 0).
-          // This now correctly includes single-digit numbers.
           const easingFunction = (digitPosition === 0) 
             ? EASE_OUT_BACK_SUBTLE 
             : EASE_OUT_QUART;
@@ -127,7 +120,10 @@ const About = () => {
         const [entry] = entries;
         if (entry.isIntersecting && !hasAnimated) {
           setHasAnimated(true);
-          setCounts(stats.map(stat => stat.value));
+          // Delay setting counts slightly to sync with the card animation
+          setTimeout(() => {
+            setCounts(stats.map(stat => stat.value));
+          }, 400); 
         }
       },
       { threshold: 0.3 }
@@ -146,24 +142,37 @@ const About = () => {
   }, [hasAnimated, stats]);
 
   return (
-    <section ref={sectionRef} id="about" className="py-20 bg-muted/30">
+    <section ref={sectionRef} id="about" className="py-20 bg-muted/30 overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* --- LEFT COLUMN ANIMATION --- */}
           <div className="space-y-6">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
+            <h2 
+              className={`text-3xl sm:text-4xl font-bold text-foreground mb-6 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 -translate-x-8' : 'opacity-100 translate-x-0'}`} 
+              style={{ transitionDelay: '200ms' }}
+            >
               About Me
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p 
+              className={`text-lg text-muted-foreground leading-relaxed transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 -translate-x-8' : 'opacity-100 translate-x-0'}`}
+              style={{ transitionDelay: '350ms' }}
+            >
               I'm a passionate full-stack developer and solutions architect who specializes in 
               cutting-edge technologies including AI/ML integration, cloud-native architectures, 
               and blockchain development. I build enterprise-grade applications that scale and perform.
             </p>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p 
+              className={`text-lg text-muted-foreground leading-relaxed transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 -translate-x-8' : 'opacity-100 translate-x-0'}`}
+              style={{ transitionDelay: '400ms' }}
+            >
               My expertise spans from microservices architecture and DevOps automation to 
               advanced security implementations and performance optimization. I lead technical 
               teams and drive innovation in high-impact projects across various industries.
             </p>
-            <div className="flex flex-wrap gap-3 pt-4">
+            <div 
+              className={`flex flex-wrap gap-3 pt-4 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 -translate-x-8' : 'opacity-100 translate-x-0'}`}
+              style={{ transitionDelay: '500ms' }}
+            >
               {[
                 "AI/ML Integration", "Cloud Architecture", "DevOps Expert", 
                 "System Design", "Blockchain Development", "Microservices",
@@ -180,13 +189,15 @@ const About = () => {
             </div>
           </div>
           
+          {/* --- RIGHT COLUMN ANIMATION --- */}
           <div className="grid grid-cols-2 gap-4 sm:gap-6">
             {stats.map((stat, index) => (
               <Card 
                 key={stat.label}
-                className="group hover:shadow-elegant transition-all duration-500 hover:scale-105 
-                         border-2 hover:border-accent/30 bg-card border-border/50"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className={`group hover:shadow-elegant transition-all duration-700 ease-out hover:scale-105 
+                         border-2 hover:border-accent/30 bg-card border-border/50
+                         ${!hasAnimated ? 'opacity-0 translate-x-8' : 'opacity-100 translate-x-0'}`}
+                style={{ transitionDelay: `${index * 150 + 200}ms` }}
               >
                 <CardContent className="p-4 sm:p-6 text-center">
                   <stat.icon className={`h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-3 ${stat.color} 

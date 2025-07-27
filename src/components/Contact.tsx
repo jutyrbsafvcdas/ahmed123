@@ -1,22 +1,59 @@
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 
 const Contact = () => {
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasAnimated]);
+
   return (
-    <section id="contact" className="py-20 bg-muted/30">
+    <section ref={sectionRef} id="contact" className="py-20 bg-muted/30 overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-foreground">
+          <h2 
+            className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-foreground transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
             Let's Work Together
           </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
+          <p 
+            className={`text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
             Ready to bring your ideas to life? I'm always interested in discussing new opportunities and exciting projects.
           </p>
         </div>
         
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8 sm:gap-12">
-          <Card className="bg-card-gradient shadow-card border-border/50">
+          {/* Left Card Animation */}
+          <Card 
+            className={`bg-card-gradient shadow-card border-border/50 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 -translate-x-8' : 'opacity-100 translate-x-0'}`}
+            style={{ transitionDelay: '350ms' }}
+          >
             <CardHeader>
               <CardTitle className="text-2xl text-card-foreground">Get In Touch</CardTitle>
               <CardDescription className="text-muted-foreground">
@@ -69,7 +106,11 @@ const Contact = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-card-gradient shadow-card border-border/50">
+          {/* Right Card Animation */}
+          <Card 
+            className={`bg-card-gradient shadow-card border-border/50 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-x-8' : 'opacity-100 translate-x-0'}`}
+            style={{ transitionDelay: '350ms' }}
+          >
             <CardHeader>
               <CardTitle className="text-2xl text-card-foreground">Quick Message</CardTitle>
               <CardDescription className="text-muted-foreground">

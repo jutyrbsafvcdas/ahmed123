@@ -44,6 +44,7 @@ const Header = () => {
       }, 2500);
     };
 
+    // --- UPDATED SCROLL HANDLER WITH 60% THRESHOLD ---
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const scrollThreshold = 100;
@@ -52,67 +53,47 @@ const Header = () => {
       setIsScrolled(scrollY > 50);
       setScrollProgress(progress);
       
-      // Detect active section - find the section that has more than half visible
       const sections = ['home', 'about', 'skills', 'certifications', 'projects', 'contact'];
-      let currentSection = 'home';
-      
-      if (scrollY >= 200) {
-        // Find the section with more than half visible in the viewport
-        let bestMatch = null;
-        let maxVisibleArea = 0;
-        
-        for (const section of sections.slice(1)) { // Skip 'home' since it's handled above
-          const element = document.getElementById(section);
-          if (element) {
-            const rect = element.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            
-            // Calculate how much of the section is visible in the viewport
-            const visibleTop = Math.max(0, -rect.top);
-            const visibleBottom = Math.max(0, rect.bottom - viewportHeight);
-            const visibleHeight = rect.height - visibleTop - visibleBottom;
-            const visibleRatio = visibleHeight / rect.height;
-            
-            // If more than half of the section is visible and it's the most visible one
-            if (visibleRatio > 0.5 && visibleHeight > maxVisibleArea) {
-              bestMatch = section;
-              maxVisibleArea = visibleHeight;
-            }
+      let newActiveSection = 'home'; // Default value
+
+      // Iterate from the last section to the first to find the current one
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const sectionId = sections[i];
+        const element = document.getElementById(sectionId);
+
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          
+          // Check if the top of the section is at or above the 40% mark of the viewport.
+          // This means the section is covering at least the bottom 60% of the screen.
+          if (rect.top <= window.innerHeight * 0.4) { 
+            newActiveSection = sectionId;
+            break; // Found the correct section, so we exit the loop
           }
-        }
-        
-        if (bestMatch) {
-          currentSection = bestMatch;
         }
       }
       
-      if (currentSection) {
-        setActiveSection(currentSection);
+      if (newActiveSection !== activeSection) {
+        setActiveSection(newActiveSection);
       }
     };
 
-    // Add event listeners
     const events = ['mousemove', 'keydown', 'click', 'touchstart'];
-    events.forEach(event => {
-      document.addEventListener(event, handleInteraction, { passive: true });
-    });
+    events.forEach(event => document.addEventListener(event, handleInteraction, { passive: true }));
     
     document.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('scroll', handleInteraction, { passive: true });
 
-    // Initial calls
     handleInteraction();
     handleScroll();
 
     return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, handleInteraction);
-      });
+      events.forEach(event => document.removeEventListener(event, handleInteraction));
       document.removeEventListener('scroll', handleScroll);
       document.removeEventListener('scroll', handleInteraction);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, []);
+  }, [activeSection, resetHideTimer]);
 
   const scrollToSection = (id: string) => {
     if (id === 'home') {
@@ -120,8 +101,8 @@ const Header = () => {
     } else {
       const element = document.getElementById(id);
       if (element) {
-        const headerHeight = 80; // Approximate header height
-        const offset = 0; // Additional spacing from header
+        const headerHeight = 80;
+        const offset = 0;
         const elementPosition = element.offsetTop - headerHeight - offset;
         window.scrollTo({ top: elementPosition, behavior: 'smooth' });
       }
@@ -139,12 +120,11 @@ const Header = () => {
     { label: "Contact", id: "contact", icon: Mail },
   ];
 
-  // Calculate dynamic positioning based on scroll
-  const topPosition = scrollProgress * 16; // 0 to 16px (1rem)
-  const sideMargin = scrollProgress * 16; // 0 to 16px (1rem) but max 82% width
-  const maxSideMargin = window.innerWidth * 0.09; // 9% each side for 82% total width
+  const topPosition = scrollProgress * 16;
+  const sideMargin = scrollProgress * 16;
+  const maxSideMargin = window.innerWidth * 0.09;
   const finalSideMargin = Math.min(sideMargin, maxSideMargin);
-  const borderRadius = scrollProgress * 16; // 0 to 16px for rounded corners
+  const borderRadius = scrollProgress * 16;
 
   return (
     <header 
@@ -188,7 +168,6 @@ const Header = () => {
             Ahmed Rehman
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-4">
             {navItems.map((item, index) => (
               <button
@@ -230,7 +209,6 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -244,7 +222,6 @@ const Header = () => {
           </Button>
         </div>
 
-        {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="md:hidden mt-4 pt-4 border-t border-border/30 animate-fade-in">
             <div className="flex flex-col space-y-3">

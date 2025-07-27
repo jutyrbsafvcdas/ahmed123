@@ -1,9 +1,12 @@
+import { useState, useEffect, useRef } from "react";
 import { Github, Linkedin, Instagram, Mail, Heart } from "lucide-react";
 import XLogo from "@/components/ui/x-logo";
 import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const socialLinks = [
     { icon: Github, label: "GitHub", href: "https://github.com" },
@@ -13,12 +16,39 @@ const Footer = () => {
     { icon: Mail, label: "Email", href: "mailto:ahmed@example.com" },
   ];
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasAnimated]);
+
+
   return (
-    <footer className="bg-muted/30 border-t border-border/50">
+    <footer ref={sectionRef} className="bg-muted/30 border-t border-border/50 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-center text-center md:text-left">
           {/* Logo/Name */}
-          <div className="md:text-left">
+          <div 
+            className={`md:text-left transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 -translate-x-8' : 'opacity-100 translate-x-0'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
             <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Ahmed Rehman</h3>
             <p className="text-sm sm:text-base text-muted-foreground">
               Full Stack Developer crafting digital experiences
@@ -26,7 +56,10 @@ const Footer = () => {
           </div>
 
           {/* Social Links */}
-          <div className="flex justify-center">
+          <div 
+            className={`flex justify-center transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '300ms' }}
+          >
             <div className="flex gap-3 sm:gap-4">
               {socialLinks.map((social) => (
                 <Button
@@ -49,7 +82,10 @@ const Footer = () => {
           </div>
 
           {/* Copyright */}
-          <div className="text-center md:text-right order-last">
+          <div 
+            className={`text-center md:text-right order-last transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-x-8' : 'opacity-100 translate-x-0'}`}
+            style={{ transitionDelay: '400ms' }}
+          >
             <p className="text-muted-foreground text-xs sm:text-sm">
               © {currentYear} Ahmed Rehman. All rights reserved.
             </p>

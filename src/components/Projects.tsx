@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Github, Filter, Calendar, Code } from "lucide-react";
-import { useState } from "react";
+import { Filter, Calendar, Code } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import project1 from "@/assets/project-1.jpg";
 import project2 from "@/assets/project-2.jpg";
 import project3 from "@/assets/project-3.jpg";
 
 const projects = [
+  // ... (project data remains the same)
   {
     title: "Analytics Dashboard",
     description: "A comprehensive analytics platform that helps businesses track KPIs and make data-driven decisions. Built with React, TypeScript, and D3.js for dynamic visualizations.",
@@ -72,7 +73,9 @@ const projects = [
 
 const Projects = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
-  
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
   const languages = ["all", "JavaScript", "TypeScript", "Python", "Java", "Solidity"];
   
   const filteredProjects = selectedLanguage === "all" 
@@ -88,77 +91,93 @@ const Projects = () => {
     });
   };
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+        }
+      },
+      { threshold: 0.1 } // Start animation when 10% of the section is visible
+    );
+
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasAnimated]);
+
   return (
-    <section id="projects" className="py-20 bg-background">
+    <section ref={sectionRef} id="projects" className="py-20 bg-background overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-foreground">
+          <h2 
+            className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-foreground transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
             Featured Projects
           </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 px-4">
+          <p 
+            className={`text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 px-4 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '300ms' }}
+          >
             Explore my work filtered by programming language or view all projects sorted by date
           </p>
           
-          {/* Language Filter */}
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 px-4">
-            {languages.map((language) => (
-              <Button
-                key={language}
-                variant={selectedLanguage === language ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedLanguage(language)}
-                className={`transition-all duration-300 hover:scale-105 ${
-                  selectedLanguage === language 
-                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
-                    : 'border-accent/30 text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/50'
-                }`}
-              >
-                {language === "all" ? (
-                  <>
-                    <Filter className="h-4 w-4 mr-2" />
-                    All Projects
-                  </>
-                ) : (
-                  <>
-                    <Code className="h-4 w-4 mr-2" />
-                    {language}
-                  </>
-                )}
-              </Button>
-            ))}
+          <div 
+            className={`transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '300ms' }}
+          >
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 px-4">
+              {languages.map((language) => (
+                <Button
+                  key={language}
+                  variant={selectedLanguage === language ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedLanguage(language)}
+                  className={`transition-all duration-300 hover:scale-105 ${
+                    selectedLanguage === language 
+                      ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
+                      : 'border-accent/30 text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/50'
+                  }`}
+                >
+                  {language === "all" ? <><Filter className="h-4 w-4 mr-2" />All Projects</> : <><Code className="h-4 w-4 mr-2" />{language}</>}
+                </Button>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mb-8">
+              Showing {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+              {selectedLanguage !== "all" && ` for ${selectedLanguage}`}
+            </p>
           </div>
-
-          {/* Results count */}
-          <p className="text-sm text-muted-foreground mb-8">
-            Showing {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
-            {selectedLanguage !== "all" && ` for ${selectedLanguage}`}
-          </p>
         </div>
         
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {filteredProjects.map((project, index) => (
             <Card 
               key={`${project.title}-${index}`}
-              className="group hover:shadow-elegant transition-all duration-500 hover:scale-105
-                       border-2 hover:border-accent/30 bg-card border-border/50"
+              className={`group hover:shadow-elegant transition-all duration-500 hover:scale-105
+                       border-2 hover:border-accent/30 bg-card border-border/50
+                       ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+              style={{ transitionDelay: `${index * 150 + 200}ms` }}
             >
               <CardHeader className="p-0">
                 <div className="relative overflow-hidden rounded-t-lg">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-40 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <img src={project.image} alt={project.title} className="w-full h-40 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
                   <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  {/* Date badge */}
                   <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium text-foreground flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {formatDate(project.date)}
                   </div>
                 </div>
               </CardHeader>
-              
               <CardContent className="p-4 sm:p-6">
                 <CardTitle className="text-lg sm:text-xl mb-3 text-card-foreground group-hover:text-accent transition-colors duration-300">
                   {project.title}
@@ -166,8 +185,6 @@ const Projects = () => {
                 <CardDescription className="text-muted-foreground mb-4 leading-relaxed">
                   {project.description}
                 </CardDescription>
-                
-                {/* Tech stack */}
                 <div className="flex flex-wrap gap-2">
                   {project.tech.map((tech) => (
                     <Badge key={tech} variant="outline" className="text-xs text-accent border-accent/30">
@@ -181,7 +198,10 @@ const Projects = () => {
         </div>
 
         {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
+          <div 
+            className={`text-center py-12 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '300ms' }}
+          >
             <p className="text-muted-foreground text-lg">
               No projects found for {selectedLanguage}. Try selecting a different language filter.
             </p>

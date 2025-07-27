@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const Skills = () => {
   const [activeCategory, setActiveCategory] = useState("Frontend");
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const skillCategories = {
     Frontend: [
@@ -34,18 +36,52 @@ const Skills = () => {
 
   const categories = Object.keys(skillCategories);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+        }
+      },
+      { threshold: 0.2 } // Trigger animation when 20% of the section is visible
+    );
+
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasAnimated]);
+
   return (
-    <section id="skills" className="py-20 bg-background">
+    <section ref={sectionRef} id="skills" className="py-20 bg-background overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Skills & Expertise</h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
+          <h2 
+            className={`text-3xl sm:text-4xl font-bold text-foreground mb-4 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
+            Skills & Expertise
+          </h2>
+          <p 
+            className={`text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '350ms' }}
+          >
             A comprehensive overview of my technical skills and proficiency levels
           </p>
         </div>
 
         {/* Category Navigation */}
-        <div className="flex justify-center mb-12 px-4">
+        <div 
+          className={`flex justify-center mb-12 px-4 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+          style={{ transitionDelay: '350ms' }}
+        >
           <div className="flex flex-wrap gap-2 p-1 bg-secondary/50 rounded-lg max-w-md mx-auto">
             {categories.map((category) => (
               <button
@@ -68,9 +104,10 @@ const Skills = () => {
           {skillCategories[activeCategory as keyof typeof skillCategories].map((skill, index) => (
             <Card 
               key={skill.name}
-              className="group hover:shadow-elegant transition-all duration-500 hover:scale-105
-                       border-2 hover:border-accent/30 bg-card border-border/50 overflow-hidden"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className={`group hover:shadow-elegant transition-all duration-500 hover:scale-105
+                       border-2 hover:border-accent/30 bg-card border-border/50 overflow-hidden
+                       ${!hasAnimated ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}
+              style={{ transitionDelay: `${index * 100 + 350}ms` }}
             >
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-3">
@@ -96,11 +133,9 @@ const Skills = () => {
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-accent to-primary rounded-full 
-                               transition-all duration-1000 ease-out transform origin-left
-                               group-hover:shadow-lg group-hover:shadow-accent/20"
+                               transition-all duration-1000 ease-out"
                       style={{ 
-                        width: `${skill.level}%`,
-                        animation: `slideIn 1s ease-out ${index * 100}ms both`
+                        width: hasAnimated ? `${skill.level}%` : '0%'
                       }}
                     />
                   </div>

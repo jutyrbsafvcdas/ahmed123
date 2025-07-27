@@ -1,8 +1,12 @@
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExternalLink, Calendar, Award, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
+import { Calendar, CheckCircle } from "lucide-react";
 
 const Certifications = () => {
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
   const certifications = [
     {
       title: "Full Stack Web Development",
@@ -59,18 +63,44 @@ const Certifications = () => {
       credentialUrl: "#"
     }
   ];
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasAnimated]);
 
   return (
-    <section id="certifications" className="py-24 bg-gradient-to-br from-card/30 via-card/20 to-background/95">
+    <section ref={sectionRef} id="certifications" className="py-24 bg-gradient-to-br from-card/30 via-card/20 to-background/95 overflow-hidden">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-16 animate-fade-in">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Award className="h-8 w-8 text-primary" />
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
-              Certifications
-            </h2>
-          </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+        <div className="text-center mb-16">
+          <h2 
+            className={`text-3xl sm:text-4xl font-bold text-foreground mb-4 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
+            Certifications
+          </h2>
+          <p 
+            className={`text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
             Professional certifications and courses that showcase my commitment to continuous learning and expertise.
           </p>
         </div>
@@ -79,9 +109,10 @@ const Certifications = () => {
           {certifications.map((cert, index) => (
             <Card 
               key={index} 
-              className="group hover:shadow-elegant transition-all duration-500 hover:scale-105 
-                       border-2 hover:border-accent/30 border-border/50 bg-card backdrop-blur-sm"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className={`group hover:shadow-elegant transition-all duration-500 hover:scale-105 
+                       border-2 hover:border-accent/30 border-border/50 bg-card backdrop-blur-sm
+                       ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+              style={{ transitionDelay: `${index * 100 + 350}ms` }}
             >
               <CardHeader className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -124,7 +155,10 @@ const Certifications = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12 animate-fade-in">
+        <div 
+          className={`text-center mt-12 transition-all duration-700 ease-out ${!hasAnimated ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}
+          style={{ transitionDelay: '350ms' }}
+        >
           <p className="text-muted-foreground">
             Always expanding my knowledge through continuous learning and professional development.
           </p>
