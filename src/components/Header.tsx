@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Home, User, Code, Award, Layers, Mail } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
-// Header component with integrated expanding mobile menu.
+// Header component with symmetrical, smoother animation.
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -100,12 +100,12 @@ const Header = () => {
       {/* Background Overlay for when the mobile menu is open */}
       <div 
         data-state={isMenuOpen ? 'open' : 'closed'}
-        className="md:hidden fixed inset-0 z-20 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-out data-[state=closed]:opacity-0 data-[state=open]:opacity-100 data-[state=closed]:pointer-events-none"
+        className="md:hidden fixed inset-0 z-20 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ease-in-out data-[state=closed]:opacity-0 data-[state=open]:opacity-100 data-[state=closed]:pointer-events-none"
         onClick={() => setIsMenuOpen(false)}
       />
 
       <header 
-        className={`z-30 fixed transform-gpu transition-all duration-700 ease-out ${
+        className={`z-30 fixed transform-gpu transition-all duration-700 ease-in-out ${
           isVisible || isMenuOpen
             ? 'translate-y-0 opacity-100 scale-100' 
             : isScrolled 
@@ -118,7 +118,8 @@ const Header = () => {
         <div 
           className={`
             backdrop-blur-xl border max-w-none mx-auto animate-fade-in 
-            transition-all duration-500 ease-out overflow-hidden group
+            overflow-hidden group
+            transition-all duration-500 ease-in-out
             ${isMenuOpen ? 'max-h-[500px]' : 'max-h-[58px]'}
           `}
           style={{
@@ -166,7 +167,8 @@ const Header = () => {
 
           {/* --- THIS IS THE EXPANDABLE MOBILE NAVIGATION AREA --- */}
           <div className={`
-            md:hidden transition-all duration-500 ease-out
+            md:hidden
+            transition-all duration-500 ease-in-out
             ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
           `}>
               <div className="h-px bg-border/30 mx-4 my-2" />
