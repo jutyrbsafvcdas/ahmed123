@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X, Home, User, Code, Award, Layers, Mail } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 // Header component with symmetrical, smoother animation.
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [hideTimer, setHideTimer] = useState < NodeJS.Timeout | null > (null);
   const [activeSection, setActiveSection] = useState("home");
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -24,15 +23,23 @@ const Header = () => {
       if (timeoutId) clearTimeout(timeoutId);
       setIsVisible(true);
       timeoutId = setTimeout(() => {
-        // Don't hide the header if the menu is open
-        if (!isMenuOpen) setIsVisible(false);
+        // Only hide the header if the menu is closed AND the user has scrolled down.
+        if (!isMenuOpen && window.scrollY > 50) {
+          setIsVisible(false);
+        }
       }, 2500);
     };
 
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 50);
+      const scrolled = scrollY > 50;
+      setIsScrolled(scrolled);
       setScrollProgress(Math.min(scrollY / 100, 1));
+
+      // If the user scrolls back to the top, ensure the header is visible.
+      if (scrollY <= 50) {
+        setIsVisible(true);
+      }
       
       const sections = ['home', 'about', 'skills', 'certifications', 'projects', 'contact'];
       let newActiveSection = 'home';
@@ -46,10 +53,9 @@ const Header = () => {
       setActiveSection(newActiveSection);
     };
 
-    const events = ['mousemove', 'keydown', 'click', 'touchstart'];
+    const events = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'];
     events.forEach(event => document.addEventListener(event, handleInteraction, { passive: true }));
     document.addEventListener('scroll', handleScroll, { passive: true });
-    document.addEventListener('scroll', handleInteraction, { passive: true });
     
     handleInteraction();
     handleScroll();
@@ -57,7 +63,6 @@ const Header = () => {
     return () => {
       events.forEach(event => document.removeEventListener(event, handleInteraction));
       document.removeEventListener('scroll', handleScroll);
-      document.removeEventListener('scroll', handleInteraction);
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [isMenuOpen]); // Rerun this effect if isMenuOpen changes
@@ -119,7 +124,7 @@ const Header = () => {
           className={`
             backdrop-blur-xl border max-w-none mx-auto animate-fade-in 
             overflow-hidden group
-            transition-all duration-500 ease-in-out
+            transition-all duration-1000 ease-in-out
             ${isMenuOpen ? 'max-h-[500px]' : 'max-h-[58px]'}
           `}
           style={{
@@ -130,7 +135,7 @@ const Header = () => {
           }}
         >
           {/* Top part of the header (always visible) */}
-          <div className="flex items-center justify-between px-4 sm:px-8 py-3 h-[58px]">
+          <div className="flex items-center justify-between px-4 sm:px-8 h-[58px]">
             <div className="text-xl font-bold text-white hover:text-accent transition-colors duration-300 cursor-pointer" 
                  onClick={() => scrollToSection('home')}>
               Ahmed Rehman
@@ -142,9 +147,12 @@ const Header = () => {
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`relative px-4 py-2 mx-1 rounded-lg flex items-center gap-2 border-2 border-transparent transition-all duration-300 font-medium ${
+                  // --- CHANGE MADE ON THIS LINE: Added 'bottom-px' to nudge the button up ---
+                  className={`relative bottom-px px-4 h-10 mx-1 rounded-lg flex items-center gap-2 border-2 border-transparent transition-all duration-300 font-medium 
+                    after:content-[''] after:absolute after:left-4 after:right-4 after:bottom-[-2px] after:h-[1px] after:bg-accent after:origin-center after:scale-x-0 after:transition-transform after:duration-300 after:ease-in-out 
+                    ${
                     activeSection === item.id 
-                      ? 'text-accent bg-accent/20 shadow-md border-accent/30 hover:scale-[1.08]' 
+                      ? 'text-accent bg-accent/20 border-accent/30 hover:scale-[1.08] after:scale-x-100' 
                       : 'text-foreground/80 hover:text-accent hover:scale-[1.08] hover:bg-accent/10'
                   }`}
                 >
@@ -168,7 +176,7 @@ const Header = () => {
           {/* --- THIS IS THE EXPANDABLE MOBILE NAVIGATION AREA --- */}
           <div className={`
             md:hidden
-            transition-all duration-500 ease-in-out
+            transition-all duration-1000 ease-in-out
             ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
           `}>
               <div className="h-px bg-border/30 mx-4 my-2" />

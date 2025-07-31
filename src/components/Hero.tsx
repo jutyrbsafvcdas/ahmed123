@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Github, Linkedin, Mail, ArrowDown, Instagram, Code, Zap, Sparkles } from "lucide-react";
+import { Github, Linkedin, Mail, ArrowDown, Instagram, Code, Zap, Sparkles, Braces, Dice6Icon, LucideDice6, LucideSparkles, SquareParking, SpaceIcon } from "lucide-react"; 
 import XLogo from "@/components/ui/x-logo";
 import { useState, useEffect } from "react";
+import { Dice6 } from 'lucide-react';
 
 // Keyframes for the bounce animation. The speed is controlled in the `style` attribute below.
 const bounceKeyframes = `
@@ -55,14 +56,20 @@ const Hero = () => {
       <style>{bounceKeyframes}</style>
       <section id="home" className="min-h-screen flex items-center justify-center bg-hero-gradient text-primary-foreground relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
+          {/* Reduced icon sizes */}
           <div className="absolute top-[175px] sm:top-[127px] right-8 sm:right-20 animate-bounce opacity-15" style={{animationDelay: '1s'}}>
-            <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-white hover:scale-125 transition-transform duration-300" />
+            <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-white hover:scale-125 transition-transform duration-300" />
           </div>
           <div className="absolute bottom-[175px] sm:bottom-[207px] right-[26px] sm:right-[50px] animate-bounce opacity-20" style={{animationDelay: '0.5s'}}>
-            <Code className="h-5 w-5 sm:h-6 sm:w-6 text-white hover:scale-125 transition-transform duration-300" />
+            <SpaceIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white hover:scale-125 transition-transform duration-300" />
           </div>
           <div className="absolute top-72 sm:top-60 left-4 sm:left-20 animate-bounce opacity-20" style={{animationDelay: '1.5s'}}>
-            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white hover:scale-125 transition-transform duration-300" />
+            <Code className="h-4 w-4 sm:h-4 sm:w-4 text-white hover:scale-125 transition-transform duration-300" />
+          </div>
+          
+          {/* MODIFIED ICON: Changed to Braces and moved slightly upward again */}
+          <div className="absolute bottom-[210px] sm:bottom-80 left-8 sm:left-32 animate-bounce opacity-15" style={{animationDelay: '0.8s'}}>
+            <LucideDice6 className="h-4 w-4 sm:h-5 sm:w-5 text-white hover:scale-125 transition-transform duration-300" />
           </div>
         </div>
 
@@ -120,7 +127,7 @@ const Hero = () => {
                   className="group transition-all duration-300 hover:scale-105 relative bg-accent text-accent-foreground hover:bg-accent/90 hover:shadow-[0_0_15px_rgba(178,148,246,0.3)] px-6"
                 >
                   Explore My Work
-                  <ArrowDown className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />
+                  <ArrowDown className="ml-2 h-3 w-3 group-hover:translate-y-1 transition-transform" />
                 </Button>
                 
                 <div className="flex gap-3 sm:gap-4 flex-wrap justify-center">
@@ -140,9 +147,9 @@ const Hero = () => {
                     >
                       <a href={social.href} target="_blank" rel="noopener noreferrer" title={social.label}>
                         {social.customIcon ? (
-                          <social.customIcon className="h-5 w-5 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 relative z-10" />
+                          <social.customIcon className="h-4 w-4 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 relative z-10" />
                         ) : social.icon ? (
-                          <social.icon className="h-5 w-5 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 relative z-10" />
+                          <social.icon className="h-4 w-4 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 relative z-10" />
                         ) : null}
                         <span className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent scale-0 group-hover:scale-100 transition-transform duration-300 rounded-md" />
                       </a>
@@ -155,13 +162,12 @@ const Hero = () => {
             <div 
               className={`flex flex-col items-center gap-1 sm:gap-2 mt-2 mb-8 transition-opacity duration-500 ${isFirstLoad ? 'opacity-0' : 'opacity-100'}`} 
               style={{
-                // Changed from 2s to 1.8s for a slightly faster animation
                 animation: 'final-bounce 1s infinite', 
                 transitionDelay: '1500ms'
               }}
             >
               <span className="text-xs sm:text-sm text-foreground/70 font-medium whitespace-nowrap">Scroll to explore</span>
-              <ArrowDown className="h-4 w-4 sm:h-6 sm:w-6 text-foreground/70" />
+              <ArrowDown className="h-3 w-3 sm:h-5 sm:w-5 text-foreground/70" />
             </div>
           </div>
         </div>
