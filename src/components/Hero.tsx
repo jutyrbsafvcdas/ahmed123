@@ -107,10 +107,10 @@ const Hero = () => {
             <div className="relative mb-16 mt-32 sm:mt-34">
               <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[121px] font-bold mb-4 tracking-tight relative overflow-hidden py-2">
                 <span className={`inline-block ${nameBaseClasses} ${!hasAnimatedIn ? '-translate-x-10 bg-gradient-to-r from-white/0 via-white/0 to-white/0' : 'translate-x-0 bg-gradient-to-r from-white via-white to-white/80'}`}>
-                  Silence is the best key
+                  Ahmed
                 </span>
                 <span className={`block ${nameBaseClasses} ${!hasAnimatedIn ? 'translate-x-10 bg-gradient-to-r from-white/0 via-white/0 to-primary-foreground/0' : 'translate-x-0 bg-gradient-to-r from-white/80 via-white to-primary-foreground'}`}>
-                  ~ Yahya aayan azyan shayan ahmed
+                  Rehman
                 </span>
               </h1>
               <div className="h-8 flex items-center justify-center relative overflow-hidden">
