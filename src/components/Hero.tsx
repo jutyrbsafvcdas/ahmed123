@@ -110,7 +110,7 @@ const Hero = () => {
                   Ahmed
                 </span>
                 <span className={`block ${nameBaseClasses} ${!hasAnimatedIn ? 'translate-x-10 bg-gradient-to-r from-white/0 via-white/0 to-primary-foreground/0' : 'translate-x-0 bg-gradient-to-r from-white/80 via-white to-primary-foreground'}`}>
-                  Rehman
+                  Rehmannnn
                 </span>
               </h1>
               <div className="h-8 flex items-center justify-center relative overflow-hidden">
