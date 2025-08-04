@@ -12,8 +12,8 @@ const Footer = () => {
     { icon: Github, label: "GitHub", href: "https://github.com" },
     { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com" },
     { icon: null, label: "X", href: "https://x.com", customIcon: XLogo },
-    { icon: Instagram, label: "Instagram", href: "https://instagram.com" },
-    { icon: Mail, label: "Email", href: "mailto:ahmed@example.com" },
+    { icon: Instagram, label: "Instagram", href: "https://instagram.com/ahmedurehman" },
+    { icon: Mail, label: "Email", href: "mailto:ahmedurehman20@gmail.com" },
   ];
 
   useEffect(() => {
