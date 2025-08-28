@@ -10,14 +10,14 @@ import project3 from "@/assets/project-3.jpg";
 const projects = [
   // ... (project data remains the same)
   {
-    title: "Analytics Dashboard",
-    description: "A comprehensive analytics platform that helps businesses track KPIs and make data-driven decisions. Built with React, TypeScript, and D3.js for dynamic visualizations.",
-    image: project1,
-    tech: ["React", "TypeScript", "D3.js", "Node.js", "PostgreSQL"],
-    languages: ["TypeScript", "JavaScript"],
-    date: "2024-01-15",
-    liveUrl: "#",
-    githubUrl: "#"
+    title: "Conversational AI Assistant",
+    description: "A sophisticated, real-time AI chat application with a custom personality. Features streaming responses, a sleek dark/light theme, and robust, Markdown-based response formatting with syntax highlighting for code.",
+    image: project1, // Remember to replace this with your new screenshot
+    tech: ["Python", "LangChain", "Groq API", "Flask", "JavaScript", "HTML5", "CSS3"],
+    languages: ["Python", "JavaScript"],
+    date: "2025-08-29", // Updated to today's date
+    liveUrl: "#", // See notes below
+    githubUrl: "#" // Remember to add your GitHub repository link here
   },
   {
     title: "E-Commerce Mobile App",
