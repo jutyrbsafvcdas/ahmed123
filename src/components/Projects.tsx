@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Filter, Calendar, Code } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import AIAssistant from "@/assets/AI-Assistant.png";
 import project1 from "@/assets/project-1.jpg";
 import project2 from "@/assets/project-2.jpg";
 import project3 from "@/assets/project-3.jpg";
@@ -12,7 +13,7 @@ const projects = [
   {
     title: "Personalized AI Assistant",
     description: "A crafted intelligence with dedication, precision, and creativity—always ready to engage and assist.",
-    image: project1,
+    image: AIAssistant,
     tech: ["Python", "LangChain", "Groq API", "Flask", "JavaScript", "HTML5", "CSS3"],
     languages: ["Python", "JavaScript"],
     date: "2025-08-29",
